@@ -26,6 +26,13 @@ export const errorLayer = HttpRouter.middleware<{ handles: unknown }>()((effect)
         return Effect.succeed(HttpServerResponse.jsonUnsafe(error.toObject(), { status: 400 }))
       }
 
+      // Nothing to talk to yet: show the setup guidance instead of a generic 500.
+      if (error instanceof Error && "_tag" in error && error._tag === "ProviderNoProvidersError") {
+        return Effect.succeed(
+          HttpServerResponse.jsonUnsafe(new NamedError.Unknown({ message: error.message }).toObject(), { status: 400 }),
+        )
+      }
+
       const ref = `err_${crypto.randomUUID().slice(0, 8)}`
 
       return Effect.logError("failed", { ref, error, cause: Cause.pretty(cause) }).pipe(

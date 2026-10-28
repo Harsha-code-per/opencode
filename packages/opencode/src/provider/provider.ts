@@ -32,6 +32,7 @@ import { ModelStatus } from "./model-status"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { ProviderError } from "./error"
 import { AutoProvider } from "./auto"
+import { LocalProviders } from "./local"
 import { Flag } from "@opencode-ai/core/flag/flag"
 
 const OPENAI_HEADER_TIMEOUT_DEFAULT = 300_000
@@ -1224,7 +1225,14 @@ export class InitError extends Schema.TaggedErrorClass<InitError>()("ProviderIni
 
 export class NoProvidersError extends Schema.TaggedErrorClass<NoProvidersError>()("ProviderNoProvidersError", {}) {
   override get message() {
-    return "No providers are available"
+    if (Flag.OPENCODE_DISABLE_DEV_DEFAULTS) return "No providers are available"
+    return [
+      "No AI model is connected yet. Two free ways to start:",
+      "  1. Connect a free-tier provider: run `dev providers login` (or /connect in the TUI) and pick",
+      "     Groq, Google Gemini, OpenRouter, Cerebras, NVIDIA or Mistral. Their free keys take a minute to create.",
+      "  2. Run a model locally: install Ollama (https://ollama.com), then `ollama pull qwen2.5-coder:7b`",
+      "     (needs ~8 GB RAM or a 6 GB GPU; use qwen2.5-coder:1.5b on smaller machines). DeV finds it automatically.",
+    ].join("\n")
   }
 
   static isInstance(input: unknown): input is NoProvidersError {
@@ -1496,7 +1504,12 @@ const layer = Layer.effect(
         const plugins = yield* plugin.list()
 
         // now read config providers - includes any modifications from plugin config() hook
-        const configProviders = Object.entries(cfg.provider ?? {})
+        // DeV: running local model servers (Ollama, LM Studio) join as providers unless configured.
+        const local = Flag.OPENCODE_DISABLE_DEV_DEFAULTS ? {} : yield* Effect.promise(() => LocalProviders.detect())
+        const configProviders = [
+          ...Object.entries(cfg.provider ?? {}),
+          ...Object.entries(local).filter(([id]) => !cfg.provider?.[id]),
+        ]
         const disabled = new Set(cfg.disabled_providers ?? [])
         const enabled = cfg.enabled_providers ? new Set(cfg.enabled_providers) : null
 

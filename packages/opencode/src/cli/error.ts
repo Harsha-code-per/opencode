@@ -102,7 +102,7 @@ export function FormatError(input: unknown): string | undefined {
     return [
       `Failed to load remote config${remote ? ` from ${remote}` : ""}: the server returned a login page instead of JSON.`,
       `Authentication is missing or has expired (the endpoint is likely behind an SSO or identity-aware proxy).`,
-      ...(url ? [`Run \`opencode auth login ${url}\` to re-authenticate.`] : []),
+      ...(url ? [`Run \`dev auth login ${url}\` to re-authenticate.`] : []),
     ].join("\n")
   }
 
@@ -116,6 +116,13 @@ export function FormatError(input: unknown): string | undefined {
       `Configuration is invalid${path && path !== "config" ? ` at ${path}` : ""}` + (message ? `: ${message}` : ""),
       ...issues.map((issue) => "↳ " + issue.message + " " + issue.path.join(".")),
     ].join("\n")
+  }
+
+  // UnknownError from the server: show its message as text instead of dumping JSON.
+  const unknown = configData(input, "UnknownError")
+  if (unknown && typeof unknown.message === "string") {
+    const ref = stringField(unknown, "ref")
+    return unknown.message + (ref ? ` (ref ${ref})` : "")
   }
 
   // UICancelledError: user cancelled an interactive CLI prompt
