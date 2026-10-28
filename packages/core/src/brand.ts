@@ -19,6 +19,9 @@ export const CONFIG_DIR = CONFIG_DIRS[0]
 /** Name for newly written config files. */
 export const CONFIG_NAME = CONFIG_NAMES[0]
 
+/** Name advertised over mDNS. Not plain "dev.local", which collides with hosts named "dev". */
+export const MDNS_DOMAIN = stock ? "opencode.local" : "dev-ai.local"
+
 /** `name.json` and `name.jsonc` for every config name, preferred first. */
 export function configFiles(dir: string) {
   return CONFIG_NAMES.flatMap((name) => [path.join(dir, `${name}.json`), path.join(dir, `${name}.jsonc`)])

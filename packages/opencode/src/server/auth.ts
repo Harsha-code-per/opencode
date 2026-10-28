@@ -28,9 +28,15 @@ export function required(config: Info) {
 export function authorized(credentials: DecodedCredentials, config: Info) {
   return (
     Option.isSome(config.password) &&
-    credentials.username === config.username &&
+    (credentials.username === config.username || defaultAlias(credentials.username, config)) &&
     Redacted.value(credentials.password) === config.password.value
   )
+}
+
+// With no username configured, DeV's name "dev" is accepted next to the built-in default, which
+// existing clients (web app, desktop) still send.
+function defaultAlias(username: string, config: Info) {
+  return username === "dev" && config.username === "opencode" && Flag.OPENCODE_SERVER_USERNAME === undefined
 }
 
 export function header(credentials?: Credentials) {

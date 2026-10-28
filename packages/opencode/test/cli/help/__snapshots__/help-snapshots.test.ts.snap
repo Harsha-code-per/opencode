@@ -44,7 +44,7 @@ Options:
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode attach --help 1`] = `
 "opencode attach <url>
 
-attach to a running opencode server
+attach to a running dev server
 
 Positionals:
   url  http://localhost:4096                                                     [string] [required]
@@ -59,9 +59,8 @@ Options:
   -c, --continue      continue the last session                                            [boolean]
   -s, --session       session id to continue                                                [string]
       --fork          fork the session when continuing (use with --continue or --session)  [boolean]
-  -p, --password      basic auth password (defaults to OPENCODE_SERVER_PASSWORD)            [string]
-  -u, --username      basic auth username (defaults to OPENCODE_SERVER_USERNAME or 'opencode')
-                                                                                            [string]
+  -p, --password      basic auth password (defaults to DEV_SERVER_PASSWORD)                 [string]
+  -u, --username      basic auth username (defaults to DEV_SERVER_USERNAME or 'dev')        [string]
       --mini          start the minimal interactive interface             [boolean] [default: false]
       --no-replay     disable mini session history replay on resume and after resize       [boolean]
       --replay-limit  cap visible mini replay to the newest N messages                      [number]"
@@ -70,7 +69,7 @@ Options:
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode run --help 1`] = `
 "opencode run [message..]
 
-run opencode with a message
+run dev with a message
 
 Positionals:
   message  message to send                                                     [array] [default: []]
@@ -91,10 +90,9 @@ Options:
                                           [string] [choices: "default", "json"] [default: "default"]
   -f, --file         file(s) to attach to message                                            [array]
       --title        title for the session (uses truncated prompt if no value provided)     [string]
-      --attach       attach to a running opencode server (e.g., http://localhost:4096)      [string]
-  -p, --password     basic auth password (defaults to OPENCODE_SERVER_PASSWORD)             [string]
-  -u, --username     basic auth username (defaults to OPENCODE_SERVER_USERNAME or 'opencode')
-                                                                                            [string]
+      --attach       attach to a running dev server (e.g., http://localhost:4096)           [string]
+  -p, --password     basic auth password (defaults to DEV_SERVER_PASSWORD)                  [string]
+  -u, --username     basic auth username (defaults to DEV_SERVER_USERNAME or 'dev')         [string]
       --dir          directory to run in, path on remote server if attaching                [string]
       --port         port for the local server (defaults to random port if no value provided)
                                                                                             [number]
@@ -172,7 +170,7 @@ Options:
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode upgrade --help 1`] = `
 "opencode upgrade [target]
 
-upgrade opencode to the latest or a specific version
+upgrade dev to the latest or a specific version
 
 Positionals:
   target  version to upgrade to, for ex '0.1.48' or 'v0.1.48'                               [string]
@@ -185,13 +183,13 @@ Options:
       --pure        run without external plugins                                           [boolean]
   -m, --method      installation method to use
                           [string] [choices: "curl", "npm", "pnpm", "bun", "brew", "choco", "scoop"]
-      --major       upgrade to OpenCode 2 and remove OpenCode 1                            [boolean]"
+      --major       upgrade to DeV 2 and remove DeV 1                                      [boolean]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode uninstall --help 1`] = `
 "opencode uninstall
 
-uninstall opencode and remove all related files
+uninstall dev and remove all related files
 
 Options:
   -h, --help         show help                                                             [boolean]
@@ -208,7 +206,7 @@ Options:
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode serve --help 1`] = `
 "opencode serve
 
-starts a headless opencode server
+starts a headless dev server
 
 Options:
   -h, --help         show help                                                             [boolean]
@@ -228,7 +226,7 @@ Options:
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode web --help 1`] = `
 "opencode web
 
-start opencode server and open web interface
+start dev server and open web interface
 
 Options:
   -h, --help         show help                                                             [boolean]
@@ -334,7 +332,7 @@ Options:
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode pr --help 1`] = `
 "opencode pr <number>
 
-fetch and checkout a GitHub PR branch, then run opencode
+fetch and checkout a GitHub PR branch, then run dev
 
 Positionals:
   number  PR number to checkout                                                  [number] [required]
@@ -489,7 +487,7 @@ exports[`opencode CLI help-text snapshots every documented command emits stable 
 log in to a provider
 
 Positionals:
-  url  opencode auth provider                                                               [string]
+  url  dev auth provider                                                                    [string]
 
 Options:
   -h, --help        show help                                                              [boolean]

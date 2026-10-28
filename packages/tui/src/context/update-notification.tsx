@@ -81,7 +81,7 @@ export const { use: useUpdateNotification, provider: UpdateNotificationProvider 
             target,
             message:
               target.type === "major" && !message.includes(MAJOR_INSTRUCTIONS)
-                ? `${message}\nTo install OpenCode 2.0 manually, see ${MAJOR_INSTRUCTIONS}`
+                ? `${message}\nTo install DeV 2.0 manually, see ${MAJOR_INSTRUCTIONS}`
                 : message,
           })
         },

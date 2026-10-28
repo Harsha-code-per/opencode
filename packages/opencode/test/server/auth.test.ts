@@ -56,4 +56,15 @@ describe("ServerAuth", () => {
     expect(ServerAuth.authorized({ username: "alice", password: Redacted.make("secret") }, config)).toBe(true)
     expect(ServerAuth.authorized({ username: "opencode", password: Redacted.make("secret") }, config)).toBe(false)
   })
+
+  test("accepts dev as the default username only when none is configured", () => {
+    Flag.OPENCODE_SERVER_USERNAME = undefined
+    const defaulted = { password: Option.some("secret"), username: "opencode" }
+    expect(ServerAuth.authorized({ username: "dev", password: Redacted.make("secret") }, defaulted)).toBe(true)
+    expect(ServerAuth.authorized({ username: "opencode", password: Redacted.make("secret") }, defaulted)).toBe(true)
+    expect(ServerAuth.authorized({ username: "dev", password: Redacted.make("wrong") }, defaulted)).toBe(false)
+
+    Flag.OPENCODE_SERVER_USERNAME = "opencode"
+    expect(ServerAuth.authorized({ username: "dev", password: Redacted.make("secret") }, defaulted)).toBe(false)
+  })
 })

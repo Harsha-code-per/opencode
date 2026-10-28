@@ -488,7 +488,7 @@ function normalize(raw: unknown) {
   }
 
   if (!record(raw) || !record(raw.info) || typeof raw.info.id !== "string" || !Array.isArray(raw.messages)) {
-    throw new Error("Expected an `opencode export` JSON file")
+    throw new Error("Expected an `dev export` JSON file")
   }
 
   return {

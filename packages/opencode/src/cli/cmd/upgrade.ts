@@ -6,7 +6,7 @@ import { InstallationVersion } from "@opencode-ai/core/installation/version"
 
 export const UpgradeCommand = {
   command: "upgrade [target]",
-  describe: "upgrade opencode to the latest or a specific version",
+  describe: "upgrade dev to the latest or a specific version",
   builder: (yargs: Argv) => {
     return yargs
       .positional("target", {
@@ -20,7 +20,7 @@ export const UpgradeCommand = {
         choices: ["curl", "npm", "pnpm", "bun", "brew", "choco", "scoop"],
       })
       .option("major", {
-        describe: "upgrade to OpenCode 2 and remove OpenCode 1",
+        describe: "upgrade to DeV 2 and remove DeV 1",
         type: "boolean",
       })
   },
@@ -32,7 +32,7 @@ export const UpgradeCommand = {
     const detectedMethod = await Installation.method()
     const method = (args.method as Installation.Method) ?? detectedMethod
     if (method === "unknown") {
-      prompts.log.error(`opencode is installed to ${process.execPath} and may be managed by a package manager`)
+      prompts.log.error(`dev is installed to ${process.execPath} and may be managed by a package manager`)
       const install = await prompts.select({
         message: "Install anyways?",
         options: [
@@ -49,14 +49,14 @@ export const UpgradeCommand = {
     prompts.log.info("Using method: " + method)
 
     if (args.major) {
-      prompts.log.info(`From ${InstallationVersion} → OpenCode 2`)
+      prompts.log.info(`From ${InstallationVersion} → DeV 2`)
       const spinner = prompts.spinner()
       spinner.start("Installing OpenCode 2...")
       const err = await Installation.upgradeMajor(method).catch((err) => err)
       if (err) {
         spinner.stop("Upgrade failed", 1)
         if (err instanceof Error) prompts.log.error(err.message)
-        prompts.log.info(`To install OpenCode 2 manually, see ${Installation.MAJOR_INSTRUCTIONS}`)
+        prompts.log.info(`To install DeV 2 manually, see ${Installation.MAJOR_INSTRUCTIONS}`)
         prompts.outro("Done")
         return
       }
@@ -75,8 +75,8 @@ export const UpgradeCommand = {
     }
 
     if (InstallationVersion === target) {
-      prompts.log.warn(`opencode upgrade skipped: ${target} is already installed`)
-      prompts.log.info("OpenCode 2 is available. Upgrade with `opencode upgrade --major`")
+      prompts.log.warn(`dev upgrade skipped: ${target} is already installed`)
+      prompts.log.info("DeV 2 is available. Upgrade with `dev upgrade --major`")
       prompts.outro("Done")
       return
     }
@@ -99,7 +99,7 @@ export const UpgradeCommand = {
       return
     }
     spinner.stop("Upgrade complete")
-    prompts.log.info("OpenCode 2 is available. Upgrade with `opencode upgrade --major`")
+    prompts.log.info("DeV 2 is available. Upgrade with `dev upgrade --major`")
     prompts.outro("Done")
   },
 }

@@ -761,7 +761,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         ? [
             {
               name: "opencode.update",
-              title: "Update OpenCode",
+              title: "Update DeV",
               slashName: "update",
               run: () => update.open?.(),
               category: "System",
