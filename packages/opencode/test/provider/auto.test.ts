@@ -50,6 +50,20 @@ describe("AutoProvider", () => {
     expect(AutoProvider.candidates(providers).map((m) => String(m.id))).toEqual(["zero"])
   })
 
+  test("surfaces a context overflow over later unrelated failures", async () => {
+    const tooLarge = new APICallError({
+      message: "request entity too large",
+      url: "https://example.com",
+      requestBodyValues: {},
+      statusCode: 413,
+    })
+    const lm = AutoProvider.language([
+      { model: model("test", "small"), language: fake(() => Promise.reject(tooLarge)) },
+      { model: model("groq", "y"), language: fake(() => Promise.reject(rateLimited)) },
+    ])
+    await expect(lm.doGenerate({ prompt: [] } as never)).rejects.toBe(tooLarge as never)
+  })
+
   test("throws the last error when every candidate fails", async () => {
     const lm = AutoProvider.language([
       { model: model("groq", "x"), language: fake(() => Promise.reject(rateLimited)) },

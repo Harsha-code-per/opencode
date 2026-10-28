@@ -32,6 +32,7 @@ import { ModelStatus } from "./model-status"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { ProviderError } from "./error"
 import { AutoProvider } from "./auto"
+import { Flag } from "@opencode-ai/core/flag/flag"
 
 const OPENAI_HEADER_TIMEOUT_DEFAULT = 300_000
 
@@ -2073,7 +2074,8 @@ const layer = Layer.effect(
 
       // DeV: with no explicit or recent choice, route through the free auto model.
       const auto = ProviderV2.ID.make(AutoProvider.ID)
-      if (s.providers[auto]) return { providerID: auto, modelID: ModelV2.ID.make(AutoProvider.MODEL) }
+      if (s.providers[auto] && !Flag.OPENCODE_DISABLE_DEV_DEFAULTS)
+        return { providerID: auto, modelID: ModelV2.ID.make(AutoProvider.MODEL) }
 
       const configured = Object.keys(cfg.provider ?? {})
       const provider = Object.values(s.providers).find((p) => configured.length === 0 || configured.includes(p.id))

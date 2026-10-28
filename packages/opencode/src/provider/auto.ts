@@ -1,6 +1,8 @@
-import { APICallError, type LanguageModelV3, type LanguageModelV3StreamPart } from "@ai-sdk/provider"
+import { type LanguageModelV3, type LanguageModelV3StreamPart } from "@ai-sdk/provider"
+import { APICallError } from "ai"
 import { sortBy } from "remeda"
 import type { Provider } from "./provider"
+import { ProviderError } from "./error"
 
 // DeV: virtual "auto" provider. Its single model routes each request across every free
 // model from the connected providers and falls through to the next one on any failure.
@@ -97,7 +99,13 @@ export function language(list: { model: Provider.Model; language: LanguageModelV
         errors.push(e)
       }
     }
-    throw errors.at(-1) ?? new Error("No free models available. Connect a provider with /connect.")
+    // A context overflow must surface even if later candidates failed for other reasons:
+    // it is what triggers compaction, the session's real recovery.
+    throw (
+      errors.find((e) => overflow(e)) ??
+      errors.at(-1) ??
+      new Error("No free models available. Connect a provider with /connect.")
+    )
   }
   return {
     specificationVersion: "v3",
@@ -136,6 +144,14 @@ function wait(status: number | undefined, retryAfter: number) {
   // Other 4xx (bad key, unsupported model or plan) won't fix itself soon.
   if (status !== undefined && status >= 400 && status < 500) return 600_000
   return 15_000
+}
+
+function overflow(error: unknown) {
+  return (
+    APICallError.isInstance(error) &&
+    ProviderError.parseAPICallError({ providerID: "auto" as Provider.Model["providerID"], error }).type ===
+      "context_overflow"
+  )
 }
 
 function key(model: Provider.Model) {
