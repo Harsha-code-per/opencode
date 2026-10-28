@@ -7,7 +7,8 @@ import { Flock } from "./util/flock"
 import { Flag } from "./flag/flag"
 import { makeGlobalNode } from "./effect/app-node"
 
-const app = "dev"
+// DeV keeps its own dirs; OPENCODE_DISABLE_DEV_DEFAULTS restores stock opencode behaviour (used by tests).
+const app = Flag.OPENCODE_DISABLE_DEV_DEFAULTS ? "opencode" : "dev"
 const data = path.join(xdgData!, app)
 const cache = path.join(xdgCache!, app)
 const config = path.join(xdgConfig!, app)

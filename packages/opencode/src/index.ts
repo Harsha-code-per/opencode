@@ -1,4 +1,5 @@
 import yargs from "yargs"
+import { Flag } from "@opencode-ai/core/flag/flag"
 import { hideBin } from "yargs/helpers"
 import { RunCommand } from "./cli/cmd/run"
 import { GenerateCommand } from "./cli/cmd/generate"
@@ -43,9 +44,14 @@ function show(out: string) {
   process.stderr.write(out)
 }
 
+// DeV: MCP tools go through one code-mode `execute` tool by default instead of being sent
+// individually (~107K → ~19K input tokens per request with the bundled servers), which keeps
+// free models within their context windows. Set OPENCODE_EXPERIMENTAL_CODE_MODE=false to opt out.
+process.env.OPENCODE_EXPERIMENTAL_CODE_MODE ??= "true"
+
 const cli = yargs(args)
   .parserConfiguration({ "populate--": true })
-  .scriptName("dev")
+  .scriptName(Flag.OPENCODE_DISABLE_DEV_DEFAULTS ? "opencode" : "dev")
   .wrap(100)
   .help("help", "show help")
   .alias("help", "h")
