@@ -36,6 +36,7 @@ import { ConfigVariable } from "./variable"
 import { ConfigV2Compat } from "./v2-compat"
 import { Npm } from "@opencode-ai/core/npm"
 import { withTransientReadRetry } from "@/util/effect-http-client"
+import DevDefaults from "./dev-defaults.json"
 
 // Custom merge function that concatenates array fields instead of replacing them
 // Keep remeda's deep conditional merge type out of hot config-loading paths; TS profiling showed it dominates here.
@@ -408,6 +409,14 @@ const layer = Layer.effect(
             yield* Effect.logDebug("loaded remote config from well-known", { url })
           }
         }
+
+        // DeV: built-in defaults (bundled MCPs and plugins), below user config.
+        if (!Flag.OPENCODE_DISABLE_DEV_DEFAULTS)
+          yield* merge(
+            "dev-defaults",
+            yield* loadConfig(JSON.stringify(DevDefaults), { dir: Global.Path.config, source: "dev-defaults" }, authEnv),
+            "global",
+          )
 
         const global = Object.keys(authEnv).length ? yield* loadGlobal(authEnv) : yield* getGlobal()
         yield* merge(Global.Path.config, global, "global")

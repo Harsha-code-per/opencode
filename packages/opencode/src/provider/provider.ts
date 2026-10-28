@@ -2071,6 +2071,10 @@ const layer = Layer.effect(
         return { providerID: entry.providerID, modelID: entry.modelID }
       }
 
+      // DeV: with no explicit or recent choice, route through the free auto model.
+      const auto = ProviderV2.ID.make(AutoProvider.ID)
+      if (s.providers[auto]) return { providerID: auto, modelID: ModelV2.ID.make(AutoProvider.MODEL) }
+
       const configured = Object.keys(cfg.provider ?? {})
       const provider = Object.values(s.providers).find((p) => configured.length === 0 || configured.includes(p.id))
       if (!provider) return yield* new NoProvidersError()
