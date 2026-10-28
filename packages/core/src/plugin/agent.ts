@@ -5,6 +5,7 @@ import { define } from "./internal"
 import { Effect } from "effect"
 import { AgentV2 } from "../agent"
 import { Global } from "../global"
+import { Brand } from "../brand"
 import { Location } from "../location"
 import { PermissionV2 } from "../permission"
 
@@ -139,7 +140,11 @@ export const Plugin = define({
             { action: "plan_exit", resource: "*", effect: "allow" },
             { action: "external_directory", resource: path.join(Global.Path.data, "plans", "*"), effect: "allow" },
             { action: "edit", resource: "*", effect: "deny" },
-            { action: "edit", resource: path.join(".opencode", "plans", "*.md"), effect: "allow" },
+            ...Brand.CONFIG_DIRS.map((dir) => ({
+              action: "edit" as const,
+              resource: path.join(dir, "plans", "*.md"),
+              effect: "allow" as const,
+            })),
             {
               action: "edit",
               resource: path.relative(worktree, path.join(Global.Path.data, "plans", "*.md")),

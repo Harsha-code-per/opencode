@@ -17,6 +17,7 @@ import { InstanceRef } from "@/effect/instance-ref"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import path from "path"
 import { Global } from "@opencode-ai/core/global"
+import { Brand } from "@opencode-ai/core/brand"
 import { modify, applyEdits } from "jsonc-parser"
 import { Filesystem } from "@/util/filesystem"
 import { Effect } from "effect"
@@ -392,12 +393,11 @@ export const McpLogoutCommand = effectCmd({
 })
 
 async function resolveConfigPath(baseDir: string, global = false) {
-  // Check for existing config files (prefer .jsonc over .json, check .opencode/ subdirectory too)
-  const candidates = [path.join(baseDir, "opencode.json"), path.join(baseDir, "opencode.jsonc")]
-
-  if (!global) {
-    candidates.push(path.join(baseDir, ".opencode", "opencode.json"), path.join(baseDir, ".opencode", "opencode.jsonc"))
-  }
+  // Check for existing config files, then the project config folders (.dev/ before .opencode/)
+  const candidates = [
+    ...Brand.configFiles(baseDir),
+    ...(global ? [] : Brand.CONFIG_DIRS.flatMap((dir) => Brand.configFiles(path.join(baseDir, dir)))),
+  ]
 
   for (const candidate of candidates) {
     if (await Filesystem.exists(candidate)) {
@@ -405,7 +405,7 @@ async function resolveConfigPath(baseDir: string, global = false) {
     }
   }
 
-  // Default to opencode.json if none exist
+  // Default to the preferred name if none exist
   return candidates[0]
 }
 

@@ -3,6 +3,7 @@ import fs from "fs/promises"
 import { $ } from "bun"
 import { applyEdits, modify, parse } from "jsonc-parser"
 import { Global } from "@opencode-ai/core/global"
+import { Brand } from "@opencode-ai/core/brand"
 import Data from "./catalog.json"
 
 // DeV catalog: curated skills, plugins and MCP servers that can be installed per user or per
@@ -133,14 +134,14 @@ export async function setEnabled(entry: Entry, scope: Scope, root: string, enabl
 }
 
 export async function paths(scope: Scope, root: string) {
-  const dir = scope === "user" ? Global.Path.config : path.join(root, ".opencode")
-  const names =
-    scope === "user" ? ["opencode.jsonc", "opencode.json", "config.json"] : ["opencode.jsonc", "opencode.json"]
-  const existing = await Promise.all(
-    names.map(async (name) => ((await exists(path.join(dir, name))) ? name : undefined)),
-  )
+  const dir = scope === "user" ? Global.Path.config : path.join(root, Brand.CONFIG_DIR)
+  const files = [
+    ...Brand.CONFIG_NAMES.flatMap((name) => [`${name}.jsonc`, `${name}.json`]),
+    ...(scope === "user" ? ["config.json"] : []),
+  ].map((name) => path.join(dir, name))
+  const existing = await Promise.all(files.map(async (file) => ((await exists(file)) ? file : undefined)))
   return {
-    config: path.join(dir, existing.find(Boolean) ?? "opencode.json"),
+    config: existing.find(Boolean) ?? path.join(dir, `${Brand.CONFIG_NAME}.json`),
     skills: path.join(dir, "skills"),
   }
 }
@@ -170,7 +171,7 @@ async function readConfig(
 async function edit(file: string, at: string[], value: unknown) {
   const text = await Bun.file(file)
     .text()
-    .catch(() => '{\n  "$schema": "https://opencode.ai/config.json"\n}\n')
+    .catch(() => "{}\n")
   const next = applyEdits(text, modify(text, at, value, { formattingOptions: { insertSpaces: true, tabSize: 2 } }))
   await fs.mkdir(path.dirname(file), { recursive: true })
   await Bun.write(file, next)

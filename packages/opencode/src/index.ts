@@ -44,6 +44,11 @@ function show(out: string) {
   process.stderr.write(out)
 }
 
+// DeV: every setting can be given as DEV_X; the engine reads it internally as OPENCODE_X.
+for (const [key, value] of Object.entries(process.env)) {
+  if (key.startsWith("DEV_") && value !== undefined) process.env[`OPENCODE_${key.slice(4)}`] ??= value
+}
+
 // DeV: MCP tools go through one code-mode `execute` tool by default instead of being sent
 // individually (~107K → ~19K input tokens per request with the bundled servers), which keeps
 // free models within their context windows. Set OPENCODE_EXPERIMENTAL_CODE_MODE=false to opt out.

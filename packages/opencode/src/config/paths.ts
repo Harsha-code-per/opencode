@@ -3,6 +3,7 @@ export * as ConfigPaths from "./paths"
 import path from "path"
 import { Flag } from "@opencode-ai/core/flag/flag"
 import { Global } from "@opencode-ai/core/global"
+import { Brand } from "@opencode-ai/core/brand"
 import { unique } from "remeda"
 import * as Effect from "effect/Effect"
 import { FSUtil } from "@opencode-ai/core/fs-util"
@@ -14,7 +15,8 @@ export const files = Effect.fn("ConfigPaths.projectFiles")(function* (
 ) {
   const afs = yield* FSUtil.Service
   return (yield* afs.up({
-    targets: [`${name}.jsonc`, `${name}.json`],
+    // The main config name means every brand name (dev first); others ("tui") are literal.
+    targets: (name === "opencode" ? Brand.CONFIG_NAMES : [name]).flatMap((item) => [`${item}.jsonc`, `${item}.json`]),
     start: directory,
     stop: worktree,
   })).toReversed()
@@ -26,13 +28,15 @@ export const directories = Effect.fn("ConfigPaths.directories")(function* (direc
     Global.Path.config,
     ...(!Flag.OPENCODE_DISABLE_PROJECT_CONFIG
       ? yield* afs.up({
-          targets: [".opencode"],
+          // Later directories win, so at each level the preferred (.dev) folder is listed last.
+          targets: Brand.CONFIG_DIRS.toReversed(),
           start: directory,
           stop: worktree,
         })
       : []),
     ...(yield* afs.up({
-      targets: [".opencode"],
+      // Later directories win, so at each level the preferred (.dev) folder is listed last.
+      targets: Brand.CONFIG_DIRS.toReversed(),
       start: Global.Path.home,
       stop: Global.Path.home,
     })),
@@ -41,5 +45,6 @@ export const directories = Effect.fn("ConfigPaths.directories")(function* (direc
 })
 
 export function fileInDirectory(dir: string, name: string) {
+  if (name === "opencode") return Brand.configFiles(dir)
   return [path.join(dir, `${name}.json`), path.join(dir, `${name}.jsonc`)]
 }

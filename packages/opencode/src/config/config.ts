@@ -6,6 +6,7 @@ import { pathToFileURL } from "url"
 import os from "os"
 import { mergeDeep } from "remeda"
 import { Global } from "@opencode-ai/core/global"
+import { Brand } from "@opencode-ai/core/brand"
 import fsNode from "fs/promises"
 import { Flag } from "@opencode-ai/core/flag/flag"
 import { Auth } from "../auth"
@@ -139,8 +140,8 @@ export class Service extends Context.Service<Service, Interface>()("@opencode/Co
 export const use = serviceUse(Service)
 
 function globalConfigFile() {
-  const candidates = ["opencode.jsonc", "opencode.json", "config.json"].map((file) =>
-    path.join(Global.Path.config, file),
+  const candidates = [...Brand.CONFIG_NAMES.flatMap((name) => [`${name}.jsonc`, `${name}.json`]), "config.json"].map(
+    (file) => path.join(Global.Path.config, file),
   )
   for (const file of candidates) {
     if (existsSync(file)) return file
@@ -243,7 +244,8 @@ const layer = Layer.effect(
       if (!("path" in options)) return data
 
       yield* Effect.promise(() => resolveLoadedPlugins(data, options.path))
-      if (!data.$schema) {
+      // Stock opencode stamps its schema URL into user files; DeV leaves user files untouched.
+      if (!data.$schema && Flag.OPENCODE_DISABLE_DEV_DEFAULTS) {
         data.$schema = "https://opencode.ai/config.json"
         const updated = text.replace(/^\s*\{/, '{\n  "$schema": "https://opencode.ai/config.json",')
         yield* fs.writeFileString(options.path, updated).pipe(Effect.catch(() => Effect.void))
@@ -266,13 +268,23 @@ const layer = Layer.effect(
         const file = globalConfigFile()
         if (!existsSync(file)) {
           yield* fs
-            .writeWithDirs(file, JSON.stringify({ $schema: "https://opencode.ai/config.json" }, null, 2))
+            .writeWithDirs(
+              file,
+              JSON.stringify(
+                Flag.OPENCODE_DISABLE_DEV_DEFAULTS ? { $schema: "https://opencode.ai/config.json" } : {},
+                null,
+                2,
+              ),
+            )
             .pipe(Effect.catch(() => Effect.void))
         }
       }
       result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "config.json"), env))
-      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "opencode.json"), env))
-      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "opencode.jsonc"), env))
+      // Later files win, so the preferred (DeV) names load last.
+      for (const name of Brand.CONFIG_NAMES.toReversed()) {
+        result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, `${name}.json`), env))
+        result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, `${name}.jsonc`), env))
+      }
 
       const legacy = path.join(Global.Path.config, "config")
       if (existsSync(legacy)) {
@@ -414,7 +426,11 @@ const layer = Layer.effect(
         if (!Flag.OPENCODE_DISABLE_DEV_DEFAULTS)
           yield* merge(
             "dev-defaults",
-            yield* loadConfig(JSON.stringify(DevDefaults), { dir: Global.Path.config, source: "dev-defaults" }, authEnv),
+            yield* loadConfig(
+              JSON.stringify(DevDefaults),
+              { dir: Global.Path.config, source: "dev-defaults" },
+              authEnv,
+            ),
             "global",
           )
 
@@ -445,8 +461,8 @@ const layer = Layer.effect(
         const deps: Fiber.Fiber<void>[] = []
 
         for (const dir of directories) {
-          if (dir.endsWith(".opencode") || dir === Flag.OPENCODE_CONFIG_DIR) {
-            for (const file of ["opencode.json", "opencode.jsonc"]) {
+          if (Brand.isConfigDir(dir) || dir === Flag.OPENCODE_CONFIG_DIR) {
+            for (const file of Brand.CONFIG_NAMES.toReversed().flatMap((name) => [`${name}.json`, `${name}.jsonc`])) {
               const source = path.join(dir, file)
               yield* Effect.logDebug(`loading config from ${source}`)
               yield* merge(source, yield* loadFile(source, authEnv))
@@ -538,7 +554,7 @@ const layer = Layer.effect(
 
         const managedDir = ConfigManaged.managedConfigDir()
         if (existsSync(managedDir)) {
-          for (const file of ["opencode.json", "opencode.jsonc"]) {
+          for (const file of Brand.CONFIG_NAMES.toReversed().flatMap((name) => [`${name}.json`, `${name}.jsonc`])) {
             const source = path.join(managedDir, file)
             yield* merge(source, yield* loadFile(source), "global")
           }
