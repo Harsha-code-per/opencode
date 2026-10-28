@@ -8,6 +8,8 @@ import path from "path"
 import os from "os"
 import { Filesystem } from "@/util/filesystem"
 import { Process } from "@/util/process"
+import { Flag } from "@opencode-ai/core/flag/flag"
+import { SourceInstall } from "../source-install"
 
 interface UninstallArgs {
   keepConfig: boolean
@@ -52,6 +54,7 @@ export const UninstallCommand = {
       }),
 
   handler: async (args: UninstallArgs) => {
+    if (!Flag.OPENCODE_DISABLE_DEV_DEFAULTS) return SourceInstall.uninstall()
     UI.empty()
     UI.println(UI.logo("  "))
     UI.empty()

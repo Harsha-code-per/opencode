@@ -230,6 +230,8 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         Boolean(yield* dep.auth(input.id)) ||
         Boolean((yield* dep.config()).provider?.["opencode"]?.options?.apiKey)
 
+      // DeV: Zen is OpenCode's service; without the user's own key it isn't loaded at all.
+      if (!ok && !Flag.OPENCODE_DISABLE_DEV_DEFAULTS) return { autoload: false }
       if (!ok) {
         for (const [key, value] of Object.entries(input.models)) {
           if (value.cost.input === 0) continue

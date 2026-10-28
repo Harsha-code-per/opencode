@@ -3,6 +3,8 @@ import { UI } from "../ui"
 import * as prompts from "@clack/prompts"
 import { Installation } from "../../installation"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
+import { Flag } from "@opencode-ai/core/flag/flag"
+import { SourceInstall } from "../source-install"
 
 export const UpgradeCommand = {
   command: "upgrade [target]",
@@ -25,6 +27,7 @@ export const UpgradeCommand = {
       })
   },
   handler: async (args: { target?: string; method?: string; major?: boolean }) => {
+    if (!Flag.OPENCODE_DISABLE_DEV_DEFAULTS) return SourceInstall.upgrade()
     UI.empty()
     UI.println(UI.logo("  "))
     UI.empty()

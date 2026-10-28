@@ -12,6 +12,7 @@ import { ProviderV2 } from "../../provider"
 import { ConfigProviderV1 } from "../../v1/config/provider"
 import { ConfigProviderOptionsV1 } from "../../v1/config/provider-options"
 import { ConfigV1 } from "../../v1/config/config"
+import { Flag } from "../../flag/flag"
 
 const defaultServer = "https://opencode.ai/console"
 const clientID = "opencode-cli"
@@ -174,6 +175,14 @@ export const OpencodePlugin = define<HttpClient.HttpClient | EventV2.Service | S
       const item = catalog.provider.get(ProviderV2.ID.opencode)
       if (!item) return
       const hasKey = Boolean(process.env.OPENCODE_API_KEY || connected || item.provider.request.body.apiKey)
+      // DeV: no keyless access to OpenCode's Zen; it works only with the user's own key.
+      if (!hasKey && !Flag.OPENCODE_DISABLE_DEV_DEFAULTS) {
+        for (const model of item.models.values())
+          catalog.model.update(item.provider.id, model.id, (draft) => {
+            draft.enabled = false
+          })
+        return
+      }
       catalog.provider.update(item.provider.id, (provider) => {
         if (!hasKey) provider.request.body.apiKey = "public"
       })

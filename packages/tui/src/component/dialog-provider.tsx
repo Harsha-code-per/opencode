@@ -16,14 +16,11 @@ import { useConnected } from "./use-connected"
 import { useBindings } from "../keymap"
 import { useClipboard } from "../context/clipboard"
 
-const PROVIDER_PRIORITY: Record<string, number> = {
-  opencode: 0,
-  "opencode-go": 1,
-  openai: 2,
-  "github-copilot": 3,
-  anthropic: 4,
-  google: 5,
-}
+// DeV: providers with a free tier first, so anyone can start without paying.
+const FREE_TIER = ["groq", "google", "openrouter", "cerebras", "nvidia", "mistral"]
+const PROVIDER_PRIORITY: Record<string, number> = Object.fromEntries(
+  [...FREE_TIER, "openai", "github-copilot", "anthropic"].map((id, index) => [id, index]),
+)
 
 const CUSTOM_PROVIDER_OPTION_VALUE = "__opencode_custom_provider__"
 const CUSTOM_PROVIDER_ID = /^[a-z0-9][a-z0-9-_]*$/
@@ -58,13 +55,13 @@ export function providerOptions(list: { id: string; name: string }[]): ProviderO
         title: provider.name,
         value: provider.id,
         providerID: provider.id,
-        description: {
-          opencode: "(Recommended)",
-          anthropic: "(API key)",
-          openai: "(ChatGPT Plus/Pro or API key)",
-          "opencode-go": "Low cost subscription for everyone",
-        }[provider.id],
-        category: provider.id in PROVIDER_PRIORITY ? "Popular" : "Providers",
+        description: FREE_TIER.includes(provider.id)
+          ? "(free tier)"
+          : {
+              anthropic: "(API key)",
+              openai: "(ChatGPT Plus/Pro or API key)",
+            }[provider.id],
+        category: FREE_TIER.includes(provider.id) ? "Free" : provider.id in PROVIDER_PRIORITY ? "Popular" : "Providers",
       })),
     ),
     {

@@ -4,6 +4,7 @@ import { Cause, Clock, Duration, Effect, Schedule } from "effect"
 import { MessageV2 } from "./message-v2"
 import { iife } from "@/util/iife"
 import { isRecord } from "@/util/record"
+import { Flag } from "@opencode-ai/core/flag/flag"
 
 export type Err = ReturnType<NamedError["toObject"]>
 
@@ -96,7 +97,8 @@ export function retryable(error: Err, provider: string) {
       !matchesRetryableMessage(error.data.responseBody)
     )
       return undefined
-    if (error.data.responseBody?.includes("FreeUsageLimitError")) {
+    // OpenCode Zen/Go subscription upsells belong to stock opencode, not DeV.
+    if (Flag.OPENCODE_DISABLE_DEV_DEFAULTS && error.data.responseBody?.includes("FreeUsageLimitError")) {
       return {
         message: GO_UPSELL_MESSAGE,
         action: {
@@ -109,7 +111,7 @@ export function retryable(error: Err, provider: string) {
         },
       }
     }
-    if (error.data.responseBody?.includes("GoUsageLimitError")) {
+    if (Flag.OPENCODE_DISABLE_DEV_DEFAULTS && error.data.responseBody?.includes("GoUsageLimitError")) {
       const body = parseJSON(error.data.responseBody)
       const workspace = str(body?.metadata?.workspace)
       const limitName = str(body?.metadata?.limitName)

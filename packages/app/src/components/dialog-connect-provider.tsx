@@ -237,7 +237,8 @@ function ProviderPickerV2(props: {
     active: undefined as string | undefined,
     connecting: undefined as string | undefined,
   })
-  const featured = ["opencode", "opencode-go", "anthropic", "openai", "google", "openrouter", "vercel"]
+  // DeV: free-tier providers first; OpenCode's own Zen/Go services aren't featured.
+  const featured = ["groq", "google", "openrouter", "cerebras", "nvidia", "mistral", "anthropic", "openai"]
   const custom = () => ({ id: CUSTOM_ID, name: language.t("dialog.provider.custom.label") })
   const all = createMemo(() => {
     language.locale()
