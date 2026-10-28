@@ -13,7 +13,7 @@
         "rea-agents@6.8.0",
         "mcp"
       ],
-      "enabled": false
+      "enabled": true
     },
     "chrome-devtools": {
       "type": "local",
@@ -22,7 +22,7 @@
         "-y",
         "chrome-devtools-mcp@1.12.0"
       ],
-      "enabled": false
+      "enabled": true
     },
     "context7": {
       "type": "remote",

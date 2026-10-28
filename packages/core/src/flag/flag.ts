@@ -51,6 +51,9 @@ export const Flag = {
 
   // Evaluated at access time (not module load) because tests, the CLI, and
   // external tooling set these env vars at runtime.
+  get OPENCODE_DISABLE_MCP_LAZY() {
+    return truthy("OPENCODE_DISABLE_MCP_LAZY")
+  },
   get OPENCODE_DISABLE_DEV_DEFAULTS() {
     return truthy("OPENCODE_DISABLE_DEV_DEFAULTS")
   },

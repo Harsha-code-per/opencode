@@ -34,6 +34,8 @@ import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
 import { McpCatalog } from "./catalog"
 import { McpEvent } from "@opencode-ai/schema/mcp-event"
 import { McpBrowser } from "./browser"
+import { McpLazy } from "./lazy"
+import { Flag } from "@opencode-ai/core/flag/flag"
 
 const DEFAULT_TIMEOUT = 30_000
 const CLIENT_OPTIONS = {
@@ -439,6 +441,20 @@ const layer = Layer.effect(
       Effect.catch(() => Effect.succeed([] as number[])),
     )
 
+    // Kill the server's process tree (npx wrappers leave children behind), then close the client.
+    const shutdown = Effect.fnUntraced(function* (client: MCPClient) {
+      const pid = client.transport instanceof StdioClientTransport ? client.transport.pid : null
+      if (typeof pid === "number") {
+        const pids = yield* descendants(pid)
+        for (const dpid of pids) {
+          try {
+            process.kill(dpid, "SIGTERM")
+          } catch {}
+        }
+      }
+      yield* Effect.tryPromise(() => client.close()).pipe(Effect.ignore)
+    })
+
     function watch(s: State, name: string, client: MCPClient, bridge: EffectBridge.Shape, timeout?: number) {
       client.onclose = () => {
         if (s.clients[name] !== client) return
@@ -516,6 +532,24 @@ const layer = Layer.effect(
                 return
               }
 
+              const lazy = mcp.type === "local" && !Flag.OPENCODE_DISABLE_MCP_LAZY
+              const cached = lazy ? yield* Effect.promise(() => McpLazy.read(key, mcp)) : undefined
+              if (cached) {
+                s.status[key] = { status: "connected" }
+                s.clients[key] = McpLazy.client({
+                  start: () =>
+                    bridge.promise(create(key, mcp)).then((result) => {
+                      if (!result.mcpClient) throw new Error(`MCP server ${key} failed to start`)
+                      void McpLazy.write(key, mcp, { defs: result.defs ?? [], instructions: result.instructions })
+                      return result.mcpClient
+                    }),
+                  stop: (real) => bridge.promise(shutdown(real)),
+                })
+                s.defs[key] = cached.defs
+                if (cached.instructions) s.instructions[key] = cached.instructions
+                return
+              }
+
               const result = yield* create(key, mcp)
               s.status[key] = result.status
               if (result.mcpClient) {
@@ -523,6 +557,10 @@ const layer = Layer.effect(
                 s.defs[key] = result.defs!
                 if (result.instructions) s.instructions[key] = result.instructions
                 watch(s, key, result.mcpClient, bridge, mcp.timeout)
+                if (lazy)
+                  yield* Effect.promise(() =>
+                    McpLazy.write(key, mcp, { defs: result.defs ?? [], instructions: result.instructions }),
+                  )
               }
             }),
           { concurrency: "unbounded" },
@@ -534,23 +572,7 @@ const layer = Layer.effect(
             s.clients = {}
             s.defs = {}
             s.instructions = {}
-            yield* Effect.forEach(
-              clients,
-              (client) =>
-                Effect.gen(function* () {
-                  const pid = client.transport instanceof StdioClientTransport ? client.transport.pid : null
-                  if (typeof pid === "number") {
-                    const pids = yield* descendants(pid)
-                    for (const dpid of pids) {
-                      try {
-                        process.kill(dpid, "SIGTERM")
-                      } catch {}
-                    }
-                  }
-                  yield* Effect.tryPromise(() => client.close()).pipe(Effect.ignore)
-                }),
-              { concurrency: "unbounded" },
-            )
+            yield* Effect.forEach(clients, shutdown, { concurrency: "unbounded" })
             pendingOAuthTransports.clear()
           }),
         )
