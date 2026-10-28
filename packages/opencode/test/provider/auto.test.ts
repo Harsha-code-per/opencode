@@ -50,6 +50,25 @@ describe("AutoProvider", () => {
     expect(AutoProvider.candidates(providers).map((m) => String(m.id))).toEqual(["zero"])
   })
 
+  test("moves on when a candidate never starts responding", async () => {
+    const hanging = {
+      doStream: (options: { abortSignal?: AbortSignal }) =>
+        new Promise((_, reject) => options.abortSignal?.addEventListener("abort", () => reject(new Error("aborted")))),
+    } as unknown as LanguageModelV3
+    const ok = fake(async () => ({ stream: new ReadableStream({ start: (c) => c.close() }) }))
+    const lm = AutoProvider.language(
+      [
+        { model: model("groq", "hang"), language: hanging },
+        { model: model("cerebras", "ok"), language: ok },
+      ],
+      { firstResponseMs: 50 },
+    )
+    const started = Date.now()
+    const result = await lm.doStream({ prompt: [] } as never)
+    expect(result.stream).toBeDefined()
+    expect(Date.now() - started).toBeLessThan(2000)
+  })
+
   test("surfaces a context overflow over later unrelated failures", async () => {
     const tooLarge = new APICallError({
       message: "request entity too large",
@@ -65,9 +84,7 @@ describe("AutoProvider", () => {
   })
 
   test("throws the last error when every candidate fails", async () => {
-    const lm = AutoProvider.language([
-      { model: model("groq", "x"), language: fake(() => Promise.reject(rateLimited)) },
-    ])
+    const lm = AutoProvider.language([{ model: model("groq", "x"), language: fake(() => Promise.reject(rateLimited)) }])
     await expect(lm.doGenerate({ prompt: [] } as never)).rejects.toBe(rateLimited as never)
   })
 })

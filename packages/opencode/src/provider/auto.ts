@@ -10,6 +10,9 @@ import { ProviderError } from "./error"
 export const ID = "auto"
 export const MODEL = "free"
 const MAX_CANDIDATES = 12
+// ponytail: one window for every candidate; per-provider latency stats would let slow-but-good
+// providers have longer.
+const FIRST_RESPONSE_MS = 30_000
 
 // Providers whose models are usable on a free tier even though models.dev lists paid prices.
 // ponytail: static list, swap for a live free-tier catalog (e.g. freellmapi's) if it drifts.
@@ -86,17 +89,30 @@ export function info(providers: Record<string, Provider.Info>): Provider.Info | 
   }
 }
 
-export function language(list: { model: Provider.Model; language: LanguageModelV3 }[]): LanguageModelV3 {
-  const attempt = async <T>(signal: AbortSignal | undefined, run: (item: (typeof list)[number]) => PromiseLike<T>) => {
+export function language(
+  list: { model: Provider.Model; language: LanguageModelV3 }[],
+  opts: { firstResponseMs?: number } = {},
+): LanguageModelV3 {
+  const attempt = async <T>(
+    signal: AbortSignal | undefined,
+    windowMs: number,
+    run: (item: (typeof list)[number], signal: AbortSignal) => PromiseLike<T>,
+  ) => {
     const errors: unknown[] = []
     for (const item of list) {
       if (signal?.aborted) throw signal.reason
+      // Free endpoints sometimes accept the connection and never answer. Give each candidate a
+      // short window to start responding (headers or full result), then move on to the next.
+      const deadline = new AbortController()
+      const timer = setTimeout(() => deadline.abort(new Error(`${key(item.model)} did not respond`)), windowMs)
       try {
-        return await run(item)
+        return await run(item, signal ? AbortSignal.any([signal, deadline.signal]) : deadline.signal)
       } catch (e) {
         if (signal?.aborted) throw e
         cool(item.model, e)
         errors.push(e)
+      } finally {
+        clearTimeout(timer)
       }
     }
     // A context overflow must surface even if later candidates failed for other reasons:
@@ -112,10 +128,15 @@ export function language(list: { model: Provider.Model; language: LanguageModelV
     provider: ID,
     modelId: MODEL,
     supportedUrls: {},
-    doGenerate: (options) => attempt(options.abortSignal, (item) => item.language.doGenerate(options)),
+    doGenerate: (options) =>
+      // Non-streaming: the window covers the whole answer, so it is longer.
+      attempt(options.abortSignal, (opts.firstResponseMs ?? FIRST_RESPONSE_MS) * 4, (item, abortSignal) =>
+        item.language.doGenerate({ ...options, abortSignal }),
+      ),
     doStream: (options) =>
-      attempt(options.abortSignal, async (item) => {
-        const result = await item.language.doStream(options)
+      attempt(options.abortSignal, opts.firstResponseMs ?? FIRST_RESPONSE_MS, async (item, abortSignal) => {
+        // The deadline only guards the wait for headers; once streaming starts it is cleared.
+        const result = await item.language.doStream({ ...options, abortSignal })
         return {
           ...result,
           stream: result.stream.pipeThrough(
