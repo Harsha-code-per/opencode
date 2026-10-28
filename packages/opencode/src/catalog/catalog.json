@@ -6,81 +6,179 @@
       "kind": "mcp",
       "name": "REA: Reverse Engineer Anything",
       "description": "Inspect native binaries, Electron/JavaScript apps, .NET, Android and websites without source; explains how features work with evidence.",
-      "tags": ["reverse-engineering", "binary", "electron", "android", "security", "analysis"],
+      "tags": [
+        "reverse-engineering",
+        "binary",
+        "electron",
+        "android",
+        "security",
+        "analysis"
+      ],
       "license": "MIT",
       "source": "https://github.com/morluto/rea",
       "bundled": true,
-      "mcp": { "type": "local", "command": ["npx", "-y", "rea-agents@6.8.0", "mcp"] }
+      "mcp": {
+        "type": "local",
+        "command": [
+          "npx",
+          "-y",
+          "rea-agents@6.8.0",
+          "mcp"
+        ]
+      }
     },
     {
       "id": "chrome-devtools",
       "kind": "mcp",
       "name": "Chrome DevTools",
       "description": "Drive a real Chrome: navigate, click, read console and network, screenshots, performance traces, Lighthouse.",
-      "tags": ["browser", "web", "debugging", "performance", "frontend", "testing"],
+      "tags": [
+        "browser",
+        "web",
+        "debugging",
+        "performance",
+        "frontend",
+        "testing"
+      ],
       "license": "Apache-2.0",
       "source": "https://github.com/ChromeDevTools/chrome-devtools-mcp",
       "bundled": true,
-      "mcp": { "type": "local", "command": ["npx", "-y", "chrome-devtools-mcp@1.12.0"] }
+      "mcp": {
+        "type": "local",
+        "command": [
+          "npx",
+          "-y",
+          "chrome-devtools-mcp@1.12.0"
+        ]
+      }
     },
     {
       "id": "context7",
       "kind": "mcp",
       "name": "Context7 docs",
       "description": "Up-to-date documentation and code examples for libraries and frameworks.",
-      "tags": ["docs", "libraries", "api", "reference"],
+      "tags": [
+        "docs",
+        "libraries",
+        "api",
+        "reference"
+      ],
       "license": "MIT",
       "source": "https://github.com/upstash/context7",
       "bundled": true,
-      "mcp": { "type": "remote", "url": "https://mcp.context7.com/mcp" }
+      "mcp": {
+        "type": "remote",
+        "url": "https://mcp.context7.com/mcp"
+      }
     },
     {
       "id": "playwright",
       "kind": "mcp",
       "name": "Playwright browser automation",
       "description": "Scripted, accessibility-tree based browser automation across Chromium, Firefox and WebKit.",
-      "tags": ["browser", "web", "automation", "e2e", "testing", "scraping"],
+      "tags": [
+        "browser",
+        "web",
+        "automation",
+        "e2e",
+        "testing",
+        "scraping"
+      ],
       "license": "Apache-2.0",
       "source": "https://github.com/microsoft/playwright-mcp",
-      "mcp": { "type": "local", "command": ["npx", "-y", "@playwright/mcp@0.0.83"] }
+      "mcp": {
+        "type": "local",
+        "command": [
+          "npx",
+          "-y",
+          "@playwright/mcp@0.0.83"
+        ]
+      }
     },
     {
       "id": "superpowers",
       "kind": "plugin",
       "name": "Superpowers",
       "description": "Skills methodology: brainstorming, planning, TDD, systematic debugging, code review, subagent-driven development.",
-      "tags": ["workflow", "planning", "tdd", "debugging", "review"],
+      "tags": [
+        "workflow",
+        "planning",
+        "tdd",
+        "debugging",
+        "review"
+      ],
       "license": "MIT",
       "source": "https://github.com/obra/superpowers",
       "bundled": true,
       "plugin": "superpowers@git+https://github.com/obra/superpowers.git#v7.0.1"
     },
     {
+      "id": "ponytail",
+      "kind": "plugin",
+      "name": "Ponytail",
+      "description": "Keeps coding lean in every session: question whether code needs to exist, reuse what's there, stdlib and native first, shortest working diff. Adds /ponytail levels plus review, audit and debt skills.",
+      "tags": [
+        "efficiency",
+        "simplicity",
+        "yagni",
+        "review",
+        "refactor",
+        "quality"
+      ],
+      "license": "MIT",
+      "source": "https://github.com/DietrichGebert/ponytail",
+      "bundled": true,
+      "plugin": "@dietrichgebert/ponytail@5.3.2"
+    },
+    {
       "id": "agent-skills",
       "kind": "skill",
       "name": "Production engineering skills",
       "description": "Addy Osmani's skills for production-grade engineering: performance, reliability, code quality.",
-      "tags": ["engineering", "performance", "quality", "frontend"],
+      "tags": [
+        "engineering",
+        "performance",
+        "quality",
+        "frontend"
+      ],
       "license": "MIT",
       "source": "https://github.com/addyosmani/agent-skills",
-      "skill": { "repo": "https://github.com/addyosmani/agent-skills.git", "ref": "0.6.13", "path": "skills" }
+      "skill": {
+        "repo": "https://github.com/addyosmani/agent-skills.git",
+        "ref": "0.6.13",
+        "path": "skills"
+      }
     },
     {
       "id": "caveman",
       "kind": "skill",
       "name": "Caveman token saver",
       "description": "Terse-output skills that cut tokens substantially, stretching free-tier quotas and context.",
-      "tags": ["tokens", "cost", "free-tier", "context"],
+      "tags": [
+        "tokens",
+        "cost",
+        "free-tier",
+        "context"
+      ],
       "license": "Apache-2.0",
       "source": "https://github.com/JuliusBrussee/caveman",
-      "skill": { "repo": "https://github.com/JuliusBrussee/caveman.git", "ref": "v4.0.1", "path": "skills" }
+      "skill": {
+        "repo": "https://github.com/JuliusBrussee/caveman.git",
+        "ref": "v4.0.1",
+        "path": "skills"
+      }
     },
     {
       "id": "ui-ux-pro-max",
       "kind": "skill",
       "name": "UI/UX Pro Max",
       "description": "Design intelligence for building professional UI/UX across platforms: styles, palettes, typography, layouts.",
-      "tags": ["design", "ui", "ux", "frontend"],
+      "tags": [
+        "design",
+        "ui",
+        "ux",
+        "frontend"
+      ],
       "license": "MIT",
       "source": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill",
       "skill": {
@@ -94,27 +192,50 @@
       "kind": "skill",
       "name": "Taste",
       "description": "Art direction for coding agents: references, visual critique and taste in UI work.",
-      "tags": ["design", "ui", "frontend", "art-direction"],
+      "tags": [
+        "design",
+        "ui",
+        "frontend",
+        "art-direction"
+      ],
       "license": "MIT",
       "source": "https://github.com/Leonxlnx/taste-skill",
-      "skill": { "repo": "https://github.com/Leonxlnx/taste-skill.git", "ref": "v2.1.5", "path": "skills" }
+      "skill": {
+        "repo": "https://github.com/Leonxlnx/taste-skill.git",
+        "ref": "v2.1.5",
+        "path": "skills"
+      }
     },
     {
       "id": "archify",
       "kind": "skill",
       "name": "Archify diagrams",
       "description": "Turn an idea, plan or codebase into an interactive architecture diagram.",
-      "tags": ["diagram", "architecture", "docs", "visualization"],
+      "tags": [
+        "diagram",
+        "architecture",
+        "docs",
+        "visualization"
+      ],
       "license": "Apache-2.0",
       "source": "https://github.com/tt-a1i/archify",
-      "skill": { "repo": "https://github.com/tt-a1i/archify.git", "ref": "v3.2.0", "path": ".agents/skills" }
+      "skill": {
+        "repo": "https://github.com/tt-a1i/archify.git",
+        "ref": "v3.2.0",
+        "path": ".agents/skills"
+      }
     },
     {
       "id": "obsidian",
       "kind": "skill",
       "name": "Obsidian",
       "description": "Work with Obsidian vaults: Obsidian CLI, markdown, canvas and bases formats.",
-      "tags": ["notes", "obsidian", "markdown", "knowledge"],
+      "tags": [
+        "notes",
+        "obsidian",
+        "markdown",
+        "knowledge"
+      ],
       "license": "MIT",
       "source": "https://github.com/kepano/obsidian-skills",
       "skill": {
@@ -128,7 +249,15 @@
       "kind": "skill",
       "name": "wshobson agent skills (large)",
       "description": "185 specialist skills across languages, infra, security and testing. Large: adds many skill descriptions to every prompt.",
-      "tags": ["engineering", "python", "javascript", "devops", "security", "testing", "large"],
+      "tags": [
+        "engineering",
+        "python",
+        "javascript",
+        "devops",
+        "security",
+        "testing",
+        "large"
+      ],
       "license": "MIT",
       "source": "https://github.com/wshobson/agents",
       "skill": {
