@@ -414,7 +414,12 @@ export const RunCommand = effectCmd({
         }
       }
 
-      const piped = process.stdin.isTTY ? undefined : await Bun.stdin.text()
+      // DeV: when a message is already given, piped stdin is optional extra context. A parent
+      // process (script, daemon, another agent) can leave stdin open without ever writing to it,
+      // so wait briefly for the first bytes instead of blocking forever.
+      const piped = process.stdin.isTTY
+        ? undefined
+        : await readPiped(message.trim().length > 0 || args.command ? STDIN_GRACE_MS : undefined)
       message = resolveRunInput(message, piped) ?? ""
       const initialInput = resolveRunInput(rawMessage, piped)
 
@@ -1003,4 +1008,24 @@ export async function runMini(input: MiniCommandInput) {
     dangerouslySkipPermissions: false,
     demo: input.demo ?? false,
   })
+}
+
+const STDIN_GRACE_MS = 3_000
+
+async function readPiped(graceMs?: number) {
+  if (graceMs === undefined) return Bun.stdin.text()
+  const reader = Bun.stdin.stream().getReader()
+  const first = await Promise.race([reader.read(), Bun.sleep(graceMs).then(() => undefined)])
+  if (!first) {
+    void reader.cancel().catch(() => {})
+    process.stderr.write(`No piped input within ${graceMs / 1000}s, continuing without stdin.\n`)
+    return undefined
+  }
+  const chunks: Uint8Array[] = first.done ? [] : [first.value]
+  while (!first.done) {
+    const next = await reader.read()
+    if (next.done) break
+    chunks.push(next.value)
+  }
+  return Buffer.concat(chunks).toString("utf8")
 }
