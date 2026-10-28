@@ -119,6 +119,8 @@ const layer = Layer.effect(
         const defaults = Permission.fromConfig({
           "*": "allow",
           doom_loop: "ask",
+          // DeV: installing or changing catalog entries always asks first.
+          catalog: "ask",
           external_directory: {
             "*": "ask",
             ...Object.fromEntries(whitelistedDirs.map((dir) => [dir, "allow"])),

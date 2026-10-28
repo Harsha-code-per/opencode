@@ -1,0 +1,14 @@
+Search and manage DeV's built-in catalog of skills, plugins and MCP servers (reverse engineering, browser automation, design, diagrams, docs, token savers, specialist engineering skills and more).
+
+Use this proactively: when a task would clearly go better with a capability you don't currently have, search the catalog first instead of telling the user it can't be done. For example, inspecting a compiled app → "reverse engineering"; testing a web page → "browser"; UI design work → "design"; architecture overview → "diagram".
+
+Actions:
+- search: find entries matching `query` (keywords). Returns id, kind, description and install status per scope.
+- list: every catalog entry with its status.
+- install / uninstall: add or remove `id` at `scope` ("user" = everywhere for this user, the default; "project" = this repository only).
+- enable / disable: switch an installed entry on or off without removing it.
+
+Notes:
+- install, uninstall, enable and disable ask the user for permission.
+- MCP servers become usable immediately after install/enable. Plugins and skills load in the next session; after installing a skill you can read its SKILL.md file directly (paths are returned) to use it right away.
+- Only install what the current task needs. Prefer "project" scope for project-specific tools.
