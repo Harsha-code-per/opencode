@@ -10,7 +10,7 @@
     "dev:desktop": "bun --cwd packages/desktop dev",
     "dev:web": "bun --cwd packages/app dev",
     "lint": "oxlint",
-    "typecheck": "bun turbo typecheck",
+    "typecheck": "bun turbo typecheck --concurrency=1",
     "upgrade-opentui": "bun run script/upgrade-opentui.ts",
     "postinstall": "bun run --cwd packages/core fix-node-pty",
     "prepare": "husky",

@@ -17,4 +17,10 @@ if (process.versions.bun !== expectedBunVersion) {
   console.warn(`Warning: Bun version ${process.versions.bun} differs from expected ${expectedBunVersion}`);
 }
 '
-bun typecheck
+# DeV: typecheck one package at a time, and under a memory cap when systemd is available, so a
+# push can never take the machine down (12 parallel tsgo processes once used ~20 GB).
+if command -v systemd-run >/dev/null 2>&1 && systemd-run --user --scope --quiet true 2>/dev/null; then
+  systemd-run --user --scope --quiet -p MemoryMax=6G -p MemorySwapMax=1G -p CPUWeight=50 -- bun typecheck
+else
+  bun typecheck
+fi
