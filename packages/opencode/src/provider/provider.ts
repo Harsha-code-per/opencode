@@ -31,6 +31,7 @@ import { ModelV2 } from "@opencode-ai/core/model"
 import { ModelStatus } from "./model-status"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { ProviderError } from "./error"
+import { AutoProvider } from "./auto"
 
 const OPENAI_HEADER_TIMEOUT_DEFAULT = 300_000
 
@@ -1772,6 +1773,9 @@ const layer = Layer.effect(
           }
         }
 
+        const auto = AutoProvider.info(providers)
+        if (auto && isProviderAllowed(ProviderV2.ID.make(AutoProvider.ID))) providers[auto.id] = auto
+
         return {
           models: languages,
           providers,
@@ -1918,7 +1922,7 @@ const layer = Layer.effect(
       return info
     })
 
-    const getLanguage = Effect.fn("Provider.getLanguage")(function* (model: Model) {
+    const loadLanguage = Effect.fn("Provider.loadLanguage")(function* (model: Model) {
       const s = yield* InstanceState.get(state)
       const envs = yield* env.all()
       const key = `${model.providerID}/${model.id}`
@@ -1947,6 +1951,19 @@ const layer = Layer.effect(
             ? new ModelNotFoundError({ modelID: model.id, providerID: model.providerID, cause })
             : undefined,
       )
+    })
+
+    const getLanguage = Effect.fn("Provider.getLanguage")(function* (model: Model) {
+      if (model.providerID !== AutoProvider.ID) return yield* loadLanguage(model)
+      const s = yield* InstanceState.get(state)
+      // A candidate whose SDK fails to load is skipped, not fatal.
+      const list = yield* Effect.forEach(AutoProvider.candidates(s.providers), (m) =>
+        loadLanguage(m).pipe(
+          Effect.map((language) => [{ model: m, language }]),
+          Effect.catchCause(() => Effect.succeed([])),
+        ),
+      )
+      return AutoProvider.language(list.flat())
     })
 
     const closest = Effect.fn("Provider.closest")(function* (providerID: ProviderV2.ID, query: string[]) {
